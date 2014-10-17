@@ -51,3 +51,29 @@ function(){
 		}); 
 	}); 
 }
+
+
+A different approach to counting the frequency of hashtags:
+
+db.runCommand(
+   {
+     group:
+       {
+         ns: 'tweets',
+         $key: 'entities.hashtag.text',
+         cond: { text : { $exists: true } },
+         $reduce: function( curr, result) {
+                      result.count++;
+                  },
+         initial: { count: 0 },
+         finalize: function(result) {
+//Not sure how to get the distinct tags into this function yet
+                      var distinctTags = 
+			db.tweets.distinct('entities.hashtags.text');
+                      result.hashtag = distinctTags[result.hashtag];
+                   }
+       }
+   }
+)
+
+
