@@ -1,0 +1,53 @@
+Basic queries for fields:
+
+db.tweets.find( {lang : { $ne : "en" } }) 
+	Finds all non-English tweets. adding , { lang : 1 } to the find method will project language and _id only.
+
+db.tweets.find( {"entities.hashtags.text" : { $exists : true } } )
+	Returns every document that contain hashtags 
+
+db.tweets.distinct("entities.hashtags.text")
+	Finds every distinct hashtag in collection of tweets and returns them as an array. (Can do array operations on the distinct values such as .length for the count of unique hashtags.
+
+Queries that arent currently working:
+
+> db.tweets.mapReduce( 
+//Map
+function(){ 
+	var mKeys = this.entities.hashtags.text.distinct; 
+	var entities = this.entities;  
+	mKeys.forEach(function(k){ 
+		entities[k].forEach(function(data){ 
+			emit( data.index, 1); 
+		}); 
+	}); 
+},  
+
+//Reduce
+function(key, values) {  
+	return Array.sum( values ); 
+}, 
+{ "out" : {"inline" : 1 } } )
+
+End Operation
+
+Error for above query:
+///
+2014-10-17T11:26:46.236-0500 map reduce failed:{
+	"errmsg" : "exception: TypeError: Cannot read property 'distinct' of undefined near 'htags.text.distinct; var entities = this.' ",
+	"code" : 16722,
+	"ok" : 0
+} at src/mongo/shell/collection.js:1224
+///
+
+The following mapReduce is not working 
+var mapFunction = 
+function(){ 
+	var mKeys = this.entities.hashtags; 
+	var entities = this.entities;  
+	mKeys.forEach(function(k){ 
+		entities[k].forEach(function(data){ 
+			emit( data.index, 1); 
+		}); 
+	}); 
+}
